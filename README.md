@@ -15,6 +15,15 @@ The goal of this project is to demonstrate practical Shopify development skills 
 - Clean, maintainable code structure
 
 ---
+## Sections
+
+### Discover by category
+A responsive 6-tile category grid inspired by premium DTC layouts:
+- Desktop: 6 tiles in one row
+- Tablet/mobile: 3x2 grid
+- Optional links per tile
+- Image picker + title per tile (max 6)
+File: `sections/discover-by-category.liquid`
 
 ## Technologies
 
