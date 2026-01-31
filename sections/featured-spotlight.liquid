@@ -1,0 +1,658 @@
+{% comment %}
+  Featured spotlight
+  - Desktop: pierwszy slajd = intro + tekst, dalej produkty
+  - Mobile: intro przeniesione nad slider (zero zgadywania), slider pokazuje produkty + peek + pagination
+  - A11y: focus-visible, klawiatura, prefers-reduced-motion, aria-current na kropkach
+{% endcomment %}
+
+<section class="bt-spotlight" id="bt-spotlight-{{ section.id }}">
+  <div class="bt-spotlight__shell">
+
+    {%- comment -%} MOBILE INTRO (poza trackiem) {%- endcomment -%}
+    <header class="bt-spotlight__intro bt-spotlight__intro--mobile">
+      {% if section.settings.kicker != blank %}
+        <p class="bt-spotlight__kicker">{{ section.settings.kicker }}</p>
+      {% endif %}
+
+      {% if section.settings.heading != blank %}
+        <h2 class="bt-spotlight__heading">{{ section.settings.heading }}</h2>
+      {% endif %}
+
+      {% if section.settings.subheading != blank %}
+        <p class="bt-spotlight__subheading">{{ section.settings.subheading }}</p>
+      {% endif %}
+
+      {% if section.settings.link_label != blank and section.settings.link_url != blank %}
+        <a href="{{ section.settings.link_url }}" class="bt-spotlight__link">
+          {{ section.settings.link_label }}
+        </a>
+      {% endif %}
+    </header>
+
+    <!-- STRZAŁKA LEWA (desktop/tablet) -->
+    <button
+      type="button"
+      class="bt-spotlight__arrow bt-spotlight__arrow--prev"
+      aria-label="Previous products"
+      aria-controls="bt-spotlight-track-{{ section.id }}"
+    >
+      ‹
+    </button>
+
+    <!-- VIEWPORT -->
+    <div class="bt-spotlight__viewport">
+      <div
+        class="bt-spotlight__track"
+        id="bt-spotlight-track-{{ section.id }}"
+        data-spotlight-track
+        role="region"
+        aria-label="Featured products carousel"
+        tabindex="0"
+      >
+        <!-- DESKTOP INTRO (tylko desktop jako pierwszy slajd) -->
+        <article class="bt-spotlight__item bt-spotlight__item--intro" data-spotlight-item>
+          {% if section.settings.kicker != blank %}
+            <p class="bt-spotlight__kicker">{{ section.settings.kicker }}</p>
+          {% endif %}
+
+          {% if section.settings.heading != blank %}
+            <h2 class="bt-spotlight__heading">{{ section.settings.heading }}</h2>
+          {% endif %}
+
+          {% if section.settings.subheading != blank %}
+            <p class="bt-spotlight__subheading">{{ section.settings.subheading }}</p>
+          {% endif %}
+
+          {% if section.settings.link_label != blank and section.settings.link_url != blank %}
+            <a href="{{ section.settings.link_url }}" class="bt-spotlight__link">
+              {{ section.settings.link_label }}
+            </a>
+          {% endif %}
+        </article>
+
+        <!-- KOLEJNE KAFELKI: PRODUKTY -->
+        {% if section.settings.collection != blank %}
+          {%- assign spotlight_collection = collections[section.settings.collection] -%}
+          {%- assign products_limit = section.settings.products_to_show | default: 6 -%}
+
+          {% for product in spotlight_collection.products limit: products_limit %}
+            <article class="bt-spotlight__item" data-spotlight-item>
+              <a href="{{ product.url }}" class="bt-spotlight__card">
+                {% if product.featured_image %}
+                  <div class="bt-spotlight__image">
+                    {{ product.featured_image
+                      | image_url: width: 600
+                      | image_tag: loading: 'lazy', alt: product.featured_image.alt | escape
+                    }}
+                  </div>
+                {% endif %}
+
+                <div class="bt-spotlight__meta">
+                  <h3 class="bt-spotlight__title">{{ product.title }}</h3>
+                  {% if product.price %}
+                    <p class="bt-spotlight__price">{{ product.price | money }}</p>
+                  {% endif %}
+                </div>
+              </a>
+            </article>
+          {% endfor %}
+        {% endif %}
+      </div>
+
+      <!-- PAGINATION (kropki) -->
+      <div
+        class="bt-spotlight__pagination"
+        data-spotlight-pagination
+        aria-label="Carousel pagination"
+      ></div>
+    </div>
+
+    <!-- STRZAŁKA PRAWA (desktop/tablet) -->
+    <button
+      type="button"
+      class="bt-spotlight__arrow bt-spotlight__arrow--next"
+      aria-label="Next products"
+      aria-controls="bt-spotlight-track-{{ section.id }}"
+    >
+      ›
+    </button>
+
+  </div>
+</section>
+
+<style>
+  /* ====== SCOPE: tylko ta konkretna instancja sekcji ====== */
+  #bt-spotlight-{{ section.id }} {
+    padding-top: {{ section.settings.padding_top }}px;
+    padding-bottom: {{ section.settings.padding_bottom }}px;
+    background-color: #ffffff;
+  }
+
+  #bt-spotlight-{{ section.id }} .bt-spotlight__shell {
+    width: 100%;
+    max-width: var(--page-width);
+    padding-left: var(--page-width-padding);
+    padding-right: var(--page-width-padding);
+    margin: 0 auto;
+
+    display: flex;
+    align-items: stretch;
+    gap: 1.25rem;
+
+    position: relative;
+  }
+
+  /* MOBILE INTRO: domyślnie ukryte na desktopie */
+  #bt-spotlight-{{ section.id }} .bt-spotlight__intro--mobile {
+    display: none;
+  }
+
+  #bt-spotlight-{{ section.id }} .bt-spotlight__viewport {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Maska przy krawędziach = jednoznaczny sygnał przewijania (włączana na mobile) */
+  #bt-spotlight-{{ section.id }} .bt-spotlight__viewport::before,
+  #bt-spotlight-{{ section.id }} .bt-spotlight__viewport::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 22px;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  #bt-spotlight-{{ section.id }} .bt-spotlight__viewport::before {
+    left: 0;
+    background: linear-gradient(to right, rgba(255,255,255,1), rgba(255,255,255,0));
+  }
+
+  #bt-spotlight-{{ section.id }} .bt-spotlight__viewport::after {
+    right: 0;
+    background: linear-gradient(to left, rgba(255,255,255,1), rgba(255,255,255,0));
+  }
+
+  #bt-spotlight-{{ section.id }} .bt-spotlight__track {
+    display: flex;
+    gap: 1.75rem;
+    scroll-snap-type: x mandatory;
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    -webkit-overflow-scrolling: touch;
+
+    /* daje miejsce na "peek" kolejnego slajdu na węższych ekranach */
+    padding-right: 2rem;
+  }
+
+  #bt-spotlight-{{ section.id }} .bt-spotlight__track::-webkit-scrollbar {
+    display: none;
+  }
+
+  #bt-spotlight-{{ section.id }} .bt-spotlight__item {
+    flex: 0 0 calc((100% - 1.75rem * 3) / 4);
+    scroll-snap-align: start;
+  }
+
+  #bt-spotlight-{{ section.id }} .bt-spotlight__item--intro {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: #E3DED6;
+    padding: 64px 64px;
+    border-radius: 3px;
+    box-sizing: border-box;
+  }
+
+  #bt-spotlight-{{ section.id }} .bt-spotlight__kicker {
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: 11px;
+    margin: 0 0 12px;
+    color: #8a8a8a;
+  }
+
+  #bt-spotlight-{{ section.id }} .bt-spotlight__heading {
+    font-size: 26px;
+    line-height: 1.3;
+    font-weight: 400;
+    margin: 0 0 1.6rem;
+    color: #1f1f1f;
+  }
+
+  #bt-spotlight-{{ section.id }} .bt-spotlight__subheading {
+    font-size: 15px;
+    line-height: 1.8;
+    margin: 0;
+    color: #555555;
+    max-width: 24rem;
+  }
+
+  #bt-spotlight-{{ section.id }} .bt-spotlight__link {
+    margin-top: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    text-decoration: none;
+    color: #1f1f1f;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.28);
+    padding-bottom: 2px;
+  }
+
+  #bt-spotlight-{{ section.id }} .bt-spotlight__link:hover {
+    border-bottom-color: rgba(0, 0, 0, 0.55);
+  }
+
+  #bt-spotlight-{{ section.id }} .bt-spotlight__card {
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    color: inherit;
+    height: 100%;
+  }
+
+  #bt-spotlight-{{ section.id }} .bt-spotlight__image {
+    margin-bottom: 12px;
+  }
+
+  #bt-spotlight-{{ section.id }} .bt-spotlight__image img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  #bt-spotlight-{{ section.id }} .bt-spotlight__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  #bt-spotlight-{{ section.id }} .bt-spotlight__title {
+    font-family: var(--font-body-family);
+    font-style: var(--font-body-style);
+    font-weight: var(--font-body-weight);
+    font-size: 1.0625rem;
+    line-height: 1.5;
+    margin: 0 0 0.25rem;
+    color: #8AA39B;
+    text-align: center;
+  }
+
+  #bt-spotlight-{{ section.id }} .bt-spotlight__price {
+    font-family: var(--font-body-family);
+    font-style: var(--font-body-style);
+    font-weight: var(--font-body-weight);
+    font-size: 0.9375rem;
+    line-height: 1.4;
+    margin: 0;
+    color: #1F1F1F;
+    text-align: center;
+  }
+
+  /* --- reset buttonów, żeby motyw nie mieszał --- */
+  #bt-spotlight-{{ section.id }} .bt-spotlight__arrow,
+  #bt-spotlight-{{ section.id }} .bt-spotlight__arrow::before,
+  #bt-spotlight-{{ section.id }} .bt-spotlight__arrow::after {
+    all: unset;
+    box-sizing: border-box;
+  }
+
+  #bt-spotlight-{{ section.id }} .bt-spotlight__arrow {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 48px;
+    font-weight: 50;
+    color: #222;
+    opacity: 0.7;
+    z-index: 2;
+  }
+
+  #bt-spotlight-{{ section.id }} .bt-spotlight__arrow--prev { left: 0; }
+  #bt-spotlight-{{ section.id }} .bt-spotlight__arrow--next { right: 0; }
+
+  #bt-spotlight-{{ section.id }} .bt-spotlight__arrow::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, rgba(255,255,255,0.85), rgba(255,255,255,0));
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    z-index: -1;
+  }
+
+  #bt-spotlight-{{ section.id }} .bt-spotlight__arrow--next::before {
+    background: linear-gradient(to left, rgba(255,255,255,0.85), rgba(255,255,255,0));
+  }
+
+  #bt-spotlight-{{ section.id }} .bt-spotlight__arrow:hover::before { opacity: 1; }
+  #bt-spotlight-{{ section.id }} .bt-spotlight__arrow:hover { opacity: 1; }
+
+  #bt-spotlight-{{ section.id }} .bt-spotlight__arrow--hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* Pagination */
+  #bt-spotlight-{{ section.id }} .bt-spotlight__pagination {
+    display: none;
+    justify-content: center;
+    gap: 8px;
+    padding-top: 14px;
+  }
+
+  #bt-spotlight-{{ section.id }} .bt-spotlight__dot {
+    all: unset;
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: rgba(31,31,31,0.25);
+    cursor: pointer;
+  }
+
+  #bt-spotlight-{{ section.id }} .bt-spotlight__dot[aria-current="true"] {
+    background: rgba(31,31,31,0.7);
+  }
+
+  /* Tablet */
+  @media (max-width: 900px) {
+    #bt-spotlight-{{ section.id }} .bt-spotlight__shell {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+      gap: 0.75rem;
+    }
+
+    #bt-spotlight-{{ section.id }} .bt-spotlight__track { gap: 1rem; }
+    #bt-spotlight-{{ section.id }} .bt-spotlight__item { flex: 0 0 70%; }
+    #bt-spotlight-{{ section.id }} .bt-spotlight__item--intro { padding: 32px 28px; }
+    #bt-spotlight-{{ section.id }} .bt-spotlight__heading { font-size: 22px; }
+    #bt-spotlight-{{ section.id }} .bt-spotlight__subheading { font-size: 14px; line-height: 1.6; }
+  }
+
+  /* Mobile – FIX UX: intro nad sliderem, produkty od razu widoczne */
+  @media (max-width: 640px) {
+    #bt-spotlight-{{ section.id }} .bt-spotlight__shell {
+      display: block;
+      padding-left: 1.25rem;
+      padding-right: 1.25rem;
+    }
+
+    #bt-spotlight-{{ section.id }} .bt-spotlight__intro--mobile {
+      display: block;
+      background: #E3DED6;
+      padding: 22px 18px;
+      border-radius: 3px;
+      margin-bottom: 14px;
+    }
+
+    /* chowamy intro-slajd w tracku */
+    #bt-spotlight-{{ section.id }} .bt-spotlight__item--intro {
+      display: none;
+    }
+
+    /* strzałki chowamy – dotyk + kropki */
+    #bt-spotlight-{{ section.id }} .bt-spotlight__arrow { display: none; }
+
+    /* włączamy maskę + pagination */
+    #bt-spotlight-{{ section.id }} .bt-spotlight__viewport::before,
+    #bt-spotlight-{{ section.id }} .bt-spotlight__viewport::after {
+      opacity: 1;
+    }
+
+    #bt-spotlight-{{ section.id }} .bt-spotlight__pagination {
+      display: flex;
+    }
+
+    #bt-spotlight-{{ section.id }} .bt-spotlight__track {
+      gap: 0.75rem;
+      padding-right: 24px;
+    }
+
+    /* Peek kolejnego slajdu */
+    #bt-spotlight-{{ section.id }} .bt-spotlight__item {
+      flex: 0 0 82vw;
+    }
+
+    #bt-spotlight-{{ section.id }} .bt-spotlight__heading { font-size: 20px; margin-bottom: 10px; }
+    #bt-spotlight-{{ section.id }} .bt-spotlight__subheading { font-size: 13px; line-height: 1.6; }
+  }
+
+  /* Accessibility: focus ring */
+  #bt-spotlight-{{ section.id }} .bt-spotlight__track:focus-visible,
+  #bt-spotlight-{{ section.id }} .bt-spotlight__dot:focus-visible,
+  #bt-spotlight-{{ section.id }} .bt-spotlight__arrow:focus-visible {
+    outline: 2px solid rgba(31,31,31,0.55);
+    outline-offset: 3px;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var root = document.getElementById('bt-spotlight-{{ section.id }}');
+    if (!root) return;
+
+    var track = root.querySelector('[data-spotlight-track]');
+    var prev = root.querySelector('.bt-spotlight__arrow--prev');
+    var next = root.querySelector('.bt-spotlight__arrow--next');
+    var pagination = root.querySelector('[data-spotlight-pagination]');
+
+    if (!track) return;
+
+    function prefersReducedMotion() {
+      return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    }
+
+    function getGapPx() {
+      var styles = window.getComputedStyle(track);
+      var gap = styles.columnGap || styles.gap || '0px';
+      var n = parseFloat(gap);
+      return Number.isFinite(n) ? n : 0;
+    }
+
+    function getVisibleItems() {
+      var items = Array.prototype.slice.call(track.querySelectorAll('[data-spotlight-item]'));
+      return items.filter(function (el) {
+        var st = window.getComputedStyle(el);
+        return st.display !== 'none' && st.visibility !== 'hidden';
+      });
+    }
+
+    function stepSize() {
+      var items = getVisibleItems();
+      if (!items.length) return track.clientWidth;
+      var first = items[0].getBoundingClientRect().width;
+      return first + getGapPx();
+    }
+
+    function maxScrollLeft() {
+      return Math.max(0, track.scrollWidth - track.clientWidth);
+    }
+
+    function clamp(n, min, max) {
+      return Math.min(max, Math.max(min, n));
+    }
+
+    function scrollByDir(dir) {
+      var amount = stepSize();
+      track.scrollBy({ left: dir * amount, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+    }
+
+    function activeIndex() {
+      var items = getVisibleItems();
+      if (!items.length) return 0;
+
+      var s = stepSize();
+      if (!s) return 0;
+
+      return clamp(Math.round(track.scrollLeft / s), 0, items.length - 1);
+    }
+
+    function scrollToIndex(index) {
+      var items = getVisibleItems();
+      if (!items.length) return;
+
+      var s = stepSize();
+      var x = clamp(index, 0, items.length - 1) * s;
+      track.scrollTo({ left: x, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+    }
+
+    function updateArrows() {
+      if (!prev && !next) return;
+      var current = track.scrollLeft;
+      var max = maxScrollLeft();
+      if (prev) prev.classList.toggle('bt-spotlight__arrow--hidden', current <= 2);
+      if (next) next.classList.toggle('bt-spotlight__arrow--hidden', current >= max - 2);
+    }
+
+    function updateDots() {
+      if (!pagination) return;
+      var dots = pagination.querySelectorAll('.bt-spotlight__dot');
+      if (!dots.length) return;
+
+      var idx = activeIndex();
+      for (var i = 0; i < dots.length; i++) {
+        dots[i].setAttribute('aria-current', i === idx ? 'true' : 'false');
+      }
+    }
+
+    function buildDots() {
+      if (!pagination) return;
+
+      var items = getVisibleItems();
+      pagination.innerHTML = '';
+      if (items.length <= 1) return;
+
+      var frag = document.createDocumentFragment();
+      for (var i = 0; i < items.length; i++) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'bt-spotlight__dot';
+        b.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+        b.addEventListener('click', (function (idx) {
+          return function () { scrollToIndex(idx); };
+        })(i));
+        frag.appendChild(b);
+      }
+      pagination.appendChild(frag);
+      updateDots();
+    }
+
+    function onKeydown(e) {
+      if (e.key === 'ArrowRight') { e.preventDefault(); scrollByDir(1); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); scrollByDir(-1); }
+      if (e.key === 'Home') { e.preventDefault(); scrollToIndex(0); }
+      if (e.key === 'End') { e.preventDefault(); scrollToIndex(getVisibleItems().length - 1); }
+    }
+
+    if (prev) prev.addEventListener('click', function () { scrollByDir(-1); });
+    if (next) next.addEventListener('click', function () { scrollByDir(1); });
+
+    track.addEventListener('scroll', function () {
+      updateArrows();
+      updateDots();
+    });
+
+    track.addEventListener('keydown', onKeydown);
+
+    var resizeTimer;
+    window.addEventListener('resize', function () {
+      window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(function () {
+        buildDots();
+        updateArrows();
+        updateDots();
+      }, 120);
+    });
+
+    buildDots();
+    updateArrows();
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Featured spotlight",
+  "settings": [
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0,
+      "max": 200,
+      "step": 8,
+      "default": 80,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 200,
+      "step": 8,
+      "default": 80,
+      "unit": "px"
+    },
+    {
+      "type": "text",
+      "id": "kicker",
+      "label": "Small label (optional)",
+      "default": "New"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Shop Body Care Rituals"
+    },
+    {
+      "type": "textarea",
+      "id": "subheading",
+      "label": "Short description",
+      "default": "Nourishing daily essentials crafted with plant-powered ingredients."
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection"
+    },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "label": "Products to show",
+      "min": 3,
+      "max": 12,
+      "step": 1,
+      "default": 6
+    },
+    {
+      "type": "text",
+      "id": "link_label",
+      "label": "Link label",
+      "default": "View all"
+    },
+    {
+      "type": "url",
+      "id": "link_url",
+      "label": "Link URL"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Featured spotlight",
+      "category": "Custom"
+    }
+  ]
+}
+{% endschema %}
