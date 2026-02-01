@@ -25,6 +25,17 @@ A responsive 6-tile category grid inspired by premium DTC layouts:
 - Image picker + title per tile (max 6)
 File: `sections/discover-by-category.liquid`
 
+### Featured spotlight
+
+A responsive featured products carousel with editorial intro content:
+
+- Desktop: intro displayed as the first slide, followed by products
+- Mobile: intro placed above the carousel for improved UX
+- Collection-based product source with configurable product limit
+- Accessible controls (keyboard navigation, focus-visible, aria-current)
+- Mobile pagination with scroll-snap behavior
+File: `sections/featured-spotlight.liquid`
+
 ## Technologies
 
 - Shopify Liquid
