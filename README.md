@@ -37,6 +37,7 @@ A responsive featured products carousel with editorial intro content:
 - Accessible controls (keyboard navigation, focus-visible, aria-current)
 - Mobile pagination with scroll-snap behavior
 File: `sections/featured-spotlight.liquid`
+![Featured spotlight – live store](Featured-spotlight.png)
 
 ## Technologies
 
