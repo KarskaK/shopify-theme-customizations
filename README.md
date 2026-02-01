@@ -24,6 +24,8 @@ A responsive 6-tile category grid inspired by premium DTC layouts:
 - Optional links per tile
 - Image picker + title per tile (max 6)
 File: `sections/discover-by-category.liquid`
+![Discover by category – live store](discover-by-category-frontend.png)
+
 
 ### Featured spotlight
 
